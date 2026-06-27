@@ -18,16 +18,11 @@ if PROJECT_ROOT not in sys.path:
 
 
 def sanitize_text(text: str) -> str:
-    """Cleans input text by replacing non-printable characters with spaces and normalizing newlines."""
+    """Cleans input text by removing non-printable characters and normalizing whitespace."""
     if not isinstance(text, str):
         return ""
-    # 1. Replace anything that is not printable and not newline/carriage return with a space
-    text = "".join(char if char.isprintable() or char in "\n\r" else " " for char in text)
-    
-    # 2. Normalize CRLF to LF (\r\n -> \n)
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-
-    return text
+    text = "".join(char for char in text if char.isprintable() or char in "\n\r")
+    return " ".join(text.split())
 
 
 def log_info(msg: str):

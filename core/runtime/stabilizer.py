@@ -1,7 +1,5 @@
 import time
-from typing import Any, Callable, Dict, Optional
-from pathlib import Path
-import requests
+from typing import Any, Callable, Optional
 
 class StabilityError(Exception):
     """Base error for stabilization failures."""
@@ -48,7 +46,6 @@ class CascadeStabilizer:
 
 if __name__ == "__main__":
     # Quick test of the stabilizer logic
-    from core.orchestrator import log
     
     def flaky_action():
         import random

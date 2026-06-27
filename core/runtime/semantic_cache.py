@@ -3,6 +3,7 @@ import math
 from pathlib import Path
 from typing import Optional, Dict
 
+
 class SemanticCache:
     """
     A lightweight semantic cache that uses vector embeddings to find similar queries.
@@ -15,11 +16,13 @@ class SemanticCache:
         self.threshold = threshold
 
     def _cosine_similarity(self, v1: list[float], v2: list[float]) -> float:
-        if len(v1) != len(v2): return 0.0
+        if len(v1) != len(v2):
+            return 0.0
         dot = sum(a * b for a, b in zip(v1, v2))
         m1 = math.sqrt(sum(a * a for a in v1))
         m2 = math.sqrt(sum(b * b for b in v2))
-        if m1 == 0 or m2 == 0: return 0.0
+        if m1 == 0 or m2 == 0:
+            return 0.0
         return dot / (m1 * m2)
 
     def add_entry(self, text: str, embedding: list[float], response: Dict):

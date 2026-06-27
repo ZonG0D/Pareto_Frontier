@@ -1,6 +1,6 @@
 import time
 from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional
+from typing import Dict, List
 from pathlib import Path
 
 @dataclass
