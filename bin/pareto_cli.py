@@ -26,7 +26,8 @@ def main():
     if args.prompt:
         user_input = " ".join(args.prompt)
     else:
-        user_input = sys.stdin.read().strip()
+        # FIXED: Use buffer to avoid UnicodeDecodeError on raw binary input
+        user_input = sys.stdin.buffer.read().decode('utf-8', errors='replace').strip().replace('\x00', ' ')
 
     if not user_input:
         print(f"{Colors.FAIL}[ERROR]{Colors.ENDC} No input detected.")

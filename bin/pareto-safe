@@ -1,0 +1,7 @@
+#!/bin/bash
+# bin/pareto-safe: A robust wrapper for pareto-run to ensure clean output in automated pipelines.
+
+# We run the actual tool and use 'tr' to strip non-printable characters (except whitespace).
+# This prevents visual artifacts and ensures that weird character sequences 
+# do not bloat or break downstream LLM context windows.
+./bin/pareto-run | tr -cd '\11\12\13 \40-\176'
