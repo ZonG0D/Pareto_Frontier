@@ -1,0 +1,21 @@
+{
+  "modes": {
+    "standard": {
+      "latency": 1.6931781768798828,
+      "cost": 1.0
+    },
+    "pareto_cold": {
+      "latency": 2.9170312881469727,
+      "cost": 1.0
+    },
+    "pareto_warm": {
+      "latency": 2.3631608486175537,
+      "cost": 1.0
+    }
+  },
+  "timestamp": 1782563010.1262217,
+  "savings": {
+    "latency_imp": 1.2343769531614543,
+    "cost_red": 10.0
+  }
+}
