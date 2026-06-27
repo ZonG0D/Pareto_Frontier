@@ -7,7 +7,7 @@ import json
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from unittest.mock import MagicMock, patch
-from core.orchestrator import Orchestrator, sanitize_text
+from pareto_frontier.core.orchestrator import Orchestrator, sanitize_text
 
 class TestOrchestrator(unittest.TestCase):
     @patch('core.models.FullConfig')

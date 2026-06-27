@@ -4,11 +4,11 @@ import sys
 import os
 from pathlib import Path
 try:
-    from core.orchestrator import Orchestrator
+    from pareto_frontier.core.orchestrator import Orchestrator
 except ImportError:
     import sys as sysmodule
     sysmodule.path.append(str(Path(__file__).resolve().parent))
-    from core.orchestrator import Orchestrator
+    from pareto_frontier.core.orchestrator import Orchestrator
 
 try:
     from evals.metrics_engine import ParetoMetrics

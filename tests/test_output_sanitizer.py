@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from core.orchestrator import sanitize_text
+from pareto_frontier.core.orchestrator import sanitize_text
 
 def test_sanitize_text():
     nbsp = "\u00a0"
