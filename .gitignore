@@ -7,3 +7,10 @@ __pycache__/
 .DS_Store
 venv/
 .venv/
+
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/

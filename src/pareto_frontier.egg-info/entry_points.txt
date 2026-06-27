@@ -1,3 +1,0 @@
-[console_scripts]
-pareto-doctor = pareto_frontier.cli:diagnose
-pareto-run = pareto_frontier.cli:main

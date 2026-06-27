@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List, Dict
 
 class ParetoBenchmark:
-    def __init__(self, dataset_path: str, orchestrator_cmd: str, config_path: str = "models/config.yaml", cache_dir: str = "~/.cache/parse_input_shim"):
+    def __init__(self, dataset_path: str, orchestrator_cmd: str, config_path: str = configs/default_config.yaml, cache_dir: str = "~/.cache/parse_input_shim"):
         self.dataset_path = Path(dataset_path)
         self.orchestrator_cmd = orchestrator_cmd
         self.config_path = Path(config_path)
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=str, default="data/datasets/test_inputs.jsonl")
     parser.add_argument("--orchestrator", type=str, default="core/orchestrator.py")
-    parser.add_argument("--config", type=str, default="models/config.yaml")
+    parser.add_argument("--config", type=str, default=configs/default_config.yaml)
     parser.add_argument("--experiment", choices=['standard', 'cache'], default='standard')
     parser.add_argument("--output-file", type=str)
     args = parser.parse_args()

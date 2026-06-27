@@ -35,7 +35,7 @@ class TestOrchestrator(unittest.TestCase):
             },
             "defaults": {"ollama_fallback": "http://localhost:11434/api/chat"}
         }):
-            self.orchestrator = Orchestrator(config_path="models/config.yaml")
+            self.orchestrator = Orchestrator(config_path=configs/default_config.yaml)
 
     @patch('subprocess.run')
     def test_run_cascade_parsing_success(self, mock_subproc):
