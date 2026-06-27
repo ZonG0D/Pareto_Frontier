@@ -15,8 +15,14 @@ When executing tasks within this repo, the agent should behave as a senior syste
 ## Operational Principles
 1.  **No Stubs/Mocks in Validation:** All performance metrics must be derived from actual execution output or system telemetry.
 2.  **Traceability:** Every complex action (especially in the "Cascade") should leave a trace that can be audited.
-3.  **Minimize Overhead:** Prefer lightweight, efficient implementation patterns. Avoid heavy abstractions where simple shell/Python logic suffices.
+3.  **Minimize Overhead:** Prefer lightweight, efficient implementation patterns. Avoid heavy abstractions where simple Python/Shell logic suffices.
 4.  **Documentation as Code:** As new workflows or troubleshooting steps are discovered, they MUST be recorded back into this `AGENT.md` or via a dedicated `skills`.
+
+## Repository Integrity & Hygiene
+To align with our mission of minimizing overhead and maximizing efficiency:
+- **Single Source of Truth:** This repository must never contain nested copies of itself (e.g., no subfolders named `Pareto_Frontier/`).
+- **Structure:** All configuration, core logic, and documentation belong in the root or its standard subdirectories (`bin/`, `docs/`, `core/`, etc.).
+- **Duplicate Prevention:** Redundant directories increase complexity and violate our principle of minimalism. If duplication is detected during discovery, it must be rectified immediately by merging unique assets into the root structure.
 
 ## Task Execution Workflow
 1. **Plan (in markdown):** Define clear, actionable sub-tasks.
