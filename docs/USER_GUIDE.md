@@ -6,7 +6,6 @@ Welcome to **Pareto Frontier**, the high-efficiency LLM orchestration stack desi
 
 ### 1. Installation
 Clone this repository and run the setup script to configure your environment (creates a virtual environment and installs dependencies).
-
 ```bash
 git clone <repo_url> Pareto_Frontier
 cd Pareto_Frontier
@@ -28,7 +27,7 @@ You can pipe text from other commands into the stack:
 echo "How to optimize LLM inference" | ./bin/pareto-run
 ```
 
-### 🛠 Advanced Configuration
+## 🛠 Advanced Configuration
 
 The behavior of the cascade is controlled via `models/config.yaml`. You can swap model endpoints for different tiers without changing code.
 
@@ -53,7 +52,7 @@ Pareto Frontier uses a **tiered intelligence pipeline**:
 
 1.  **Cache Check (LRU):** A fast, local check to see if the user has asked this exact thing recently. If yes, we return the cached result instantly.
 2.  **Parsing & Normalization:** The input is sent to a "Cheap" model to clean typos, expand abbreviations, and extract intent. This ensures the Smart Model receives perfect context.
-3.        # 3. Semantic Hand-off:** The normalized text is passed to the "Smart" model for high-fidelity reasoning.
+3.  **Semantic Hand-off:** The normalized text is passed to the "Smart" model for high-fidelity reasoning.
 
 ## 📈 Metrics & Efficiency
 
