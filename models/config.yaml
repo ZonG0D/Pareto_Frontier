@@ -1,0 +1,24 @@
+# Pareto Frontier - Model Configuration (Smoke Test Mode)
+
+tiers:
+  cheap:
+    # Primary tier for input normalization (e.g., Ollama local)
+    endpoint: "http://172.16.30.8:11434/api/chat"
+    model: "gemma3n:e2b-it-q4_K_M"
+    timeout: 15
+    retry_count: 2
+
+  smart:
+    # For local testing, we use the same model as 'cheap' to ensure it works.
+    endpoint: "http://172.16.30.8:11434/api/chat"
+    model: "gemma3n:e2b-it-q4_K_M"
+    timeout: 60
+    retry_count: 3
+
+parsing:
+  # The field names Silas (the parser) uses to return JSON
+  cleaned_key: "cleaned_text"
+  semantic_helper: "semantic_helper"
+
+defaults:
+  ollama_fallback: "http://localhost:11434/api/chat"

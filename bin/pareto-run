@@ -1,0 +1,17 @@
+#!/bin/bash
+# Pareto Frontier - CLI Entry Point
+# This shim ensures the command is run from the project root for relative path stability.
+
+# Get the directory of this script, then go up one level to get the project root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+VENV_PYTHON="$PROJECT_ROOT/.venv/bin/python3"
+
+if [ ! -f "$VENV_PYTHON" ]; then
+    echo "Error: Virtual environment not found at $VENV_PYTHON"
+    echo "Please run ./setup.sh from the project root first."
+    exit 1
+fi
+
+# Execute the Python CLI with the user's arguments
+exec "$VENV_PYTHON" "$SCRIPT_DIR/pareto_cli.py" "$@"
