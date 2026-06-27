@@ -14,5 +14,5 @@ jobs:
       - run: pip install -e .
       - run: pip install -r requirements.txt pytest black flake8
       - run: pytest tests/ --tb=short
-      - run: black --check src/
+      - run: black --target-version=py314 --check src/
       - run: flake8 src/
