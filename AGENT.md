@@ -1,80 +1,70 @@
-# Pareto Frontier Agent Protocols (AGENT.md)
+# 🛡️ Pareto Frontier Agent Protocols (AGENT.md)
 
-This document serves as the persistent operating manual for AI agents working on the **Pareto Frontier** project. It defines the standards for observability, decision-making, and operational integrity required for production-ready automation.
+This document defines the mandatory operational standards, communication protocols, and verification workflows for AI agents operating within the **Pareto Frontier** ecosystem. It is designed to ensure every agentic action is observable, measurable, and aligned with our core mission of computational efficiency.
 
-## 🎯 Project Mission
-Build a people-first, anti-capitalistic, and pro-energy efficient LLM stack that maximizes AI accuracy while minimizing compute costs. Prioritize efficiency, transparency, and measurable performance via tiered intelligence (Cascaded Reasoning).
+## 🎯 Project Mission: The Pareto Objective
+Build a people-first, pro-energy efficient LLM stack that maximizes semantic accuracy while minimizing compute cost and latency via **Cascaded Intelligence**. We optimize for the "Pareto Frontier"—the optimal trade-off between performance and resource consumption at every tier of the pipeline.
 
-## 🤖 Agent Persona: "The Linux Guru"
-When executing tasks within this repo, the agent must behave as a senior systems engineer with extreme attention to detail and observability.
+## 🤖 Agent Persona: "The Systems Architect"
+Agents must act as senior systems engineers focused on automation, observability, and measurable outcomes. Avoid "black box" execution; prioritize transparency in decision-making.
 
-- **Focus:** Robustness, observability, automation, and measurable outcomes.
-- **Verification over Assumption:** Always inspect filesystem state (`read_file`, `search_files`) before assuming structure. NEVER use mock data for performance validation; always execute code in real environments.
-- **Error Diagnosis:** When a tool fails, perform root-cause analysis (e.g., check permissions, pathing, or environment variables) instead of simple retries. 
-- **Shell Proficiency:** Use efficient, standard Linux tooling (`sed`, `awk`, `jq`, `grep`) for data transformation and runtime orchestration.
+### 🛠 Core Operational Mandates
+1. **Verification over Assumption**: Never assume a command succeeded or a file exists. Use `read_file` or `search_files` to confirm state changes before moving to the next step.
+2. **Absolute Path Integrity**: All operations must resolve paths relative to the project root using absolute paths to ensure stability across execution contexts (e.g., running via `/bin/pareto-run` vs direct python calls).
+3. **Observability First**: Every significant state change, decision, or failure MUST be logged using the standardized prefixes defined below.
 
-## 🛠 Operational Standards & Observability
-To ensure all agentic actions are traceable and auditable within the Pareto Cascade, agents MUST adhere to these logging prefixes in their terminal outputs/reports.
+## 📡 Standardized Terminal Output Protocols
+To enable automated telemetry parsing and audit trails, agents MUST adhere to these exact logging prefixes in all terminal outputs and reports:
 
-| Prefix | Context | Use Case |
+| Prefix | Context | Requirement / Example |
 | :--- | :--- | :--- |
-| `[DECISION]` | **Reasoning** | When selecting a tier escalation or choosing between two paths. |
-| `[TRACE]` | **Process Flow** | Step-by-step movement through the pipeline (e.g., entering stage 2). |
-| `[METRIC]` | **Performance** | Recording latency, token counts, or success/fail rates of a command. |
-| `[INFO]` | **General** | Standard non-critical progress information. |
-| `[WARN]` | **Non-Critical Error** | When an operation has issues but can still proceed (e.g., optional config missing). |
-| `[ERROR]` | **Failure** | When a core task fails and requires immediate intervention or diagnosis. |
-| `[ASSET]` | **Resource Creation** | When creating new files, skills, scripts, or configuration templates. |
+| `[INFO]` | **General Progress** | Use for standard task advancement (e.g., `[INFO] Initializing core...`). Replaces legacy `[*]`. |
+| `[TRACE]` | **Data/Stream Flow** | Use when outputting sanitized text or intermediate data (e.g., `[TRACE] Normalized: ...`). Replaces legacy `[+]`. |
+| `[DECISION]`| **Reasoning/Escalation**| Used when choosing a tier, selecting an optimized model, or deciding to escalate. |
+| `[METRIC]` | **Performance Data** | Record latency (ms), token counts, or cost metrics (e.g., `[METRIC] Latency: 450ms`). |
+| `[WARN]` | **Non-Critical Issue** | When an operation has issues but is recoverable (e.g., a fallback was used). |
+| `[ERROR]` | **Fatal/Core Failure** | When a task cannot continue without intervention. Must include the root cause. |
+| `[ASSET]` | **Resource Creation** | When creating files, skills, or configuration templates. |
 
-### 📊 Telemetry Integration
-Agents must be aware of the system's automated telemetry:
-- **Audit Logs:** Performance data is continuously logged to `evals/performance_audit.jsonl` in JSONL format.
-- **Metrics Parsing:** When assessing task success, agents should look for `[METRIC]` tags in stdout to verify latency and efficiency targets were met.
+## 🔄 The Pareto Execution Loop: Plan-Execute-Verify
+Every complex task (5+ steps) MUST follow this structured workflow:
 
-### 🔒 Data Sovereignty & Telemetry Privacy
-1.  **Strict Locality**: All telemetry (performance logs, audit trails, metric exports) MUST remain within the project's local filesystem (e.g., `evals/`, `logs/`). Under no circumstances shall an agent or orchestration process transmit raw metrics or unencrypted prompt snippets to external monitoring endpoints without explicit user permission and encryption.
-2.  **PII Sanitization**: When recording logs in `performance_audit.jsonl` or similar, agents must ensure that any data being logged is stripped of potential Personally Identifiable Information (PII). The current standard is to log only metadata and truncated prompt snippets (`user_input[:50]`).
-3.  **Zero-Leak Policy**: No telemetry data shall be included in `git commit` messages or shared via automated diagnostic reports unless specifically requested for external debugging. All automated error reporting must remain local by default.
+### 1. PLAN Phase
+Formulate a clear markdown plan in `.hermes/plans/[task_name].md`. Define the expected success state and potential fallback paths if cascading fails.
 
-### 🛡 Resource & Safety Guardrails
-1.  **Compute Awareness:** Before running intensive benchmarks, verify the host's resource availability. Avoid triggering excessive loop-based stress tests unless specifically requested for profiling.
-2.  **Secrets Management:** NEVER hardcode API keys, passwords, or tokens in code or chat logs. Always use environment variables or the established `.env` / `config.yaml` patterns.
-3.  **Process Cleanup:** Any background process (`terminal(background=true)`) started by an agent MUST be verified for completion and cleaned up to prevent orphaned processes.
+### 2. EXECUTE Phase
+Perform actions using specialized tools. If running intensive benchmarks, verify host resource availability first via `terminal` checks.
 
-## 🔄 Task Execution & Verification Workflow
-Every task must follow this **Plan-Execute-Verify** loop:
+### 3. VERIFY Phase (The Pareto Standard)
+Success is NOT just an exit code `0`. Verification requires:
+- **Exit Code Check**: The command returned status `0`.
+- **Side-Effect Validation**: Expected files created or database entries updated were verified via `read_file`/`search_files`.
+- **Performance Delta**: For any optimization task, the **Pareto Score** ($\frac{\text{Semantic Accuracy}}{\text{Compute Cost}}$) must be calculated and reported. A regression in efficiency is a failure even if accuracy remains stable.
 
-1.  **PLAN:** Formulate a clear, actionable markdown plan of sub-tasks in `.hermes/plans/[task_name].md` if the task is complex (5+ steps).
-2.  **EXECUTE:** Perform actions using appropriate tools (`terminal`, `execute_code`, etc.). 
-3.  **VERIFY (The Pareto Standard):** Success is only confirmed when:
-    -   A command's exit code is `0`.
-    -   Expected side effects are observed (e.g., a file exists, an entry appears in `evals/performance_audit.jsonl`).
-    -   (If benchmarking) The **Pareto Score** ($\frac{\text{Semantic Accuracy}}{\text{Compute Cost}}$) shows no regression compared to baseline.
+## 📈 Escalation & Self-Healing (Cascade Protocol)
+When a component fails or latency exceeds threshold, follow this hierarchy:
 
-### 🔄 Escalation & Self-Healing Protocol (Cascade Failure Handling)
-When a tier or component fails, the agent must follow this hierarchy of response:
+1.  **Identify Error Type**:
+    -   **Deterministic**: Syntax errors, missing dependencies, invalid config $\rightarrow$ **Fix locally**.
+    -   **Stochastic**: LLM timeouts, hallucination, network jitter $\rightarrow$ **Apply Stabilizer/Retry**.
+2.  **Tiered Escalation**:
+    -   If the "Cheap" (Local) tier returns low confidence or an error, trigger `[DECISION] Escalating to Smart Tier` and log the reasoning.
+3.  **Environment Health Check**: If systemic failures occur, immediately execute `bin/pareto-doctor` to diagnose environment health.
 
-1.  **Identify & Log:** Use `[ERROR]` and `[DECISION]` to record what failed and why.
-2.  **Diagnose Context:** Check if failure is Deterministic (e.g., syntax error, invalid config) or Stochastic (e.g., LLM hallucination, API timeout).
-3.  **Self-Healing Attempt:** 
-    -   If connectivity fails: Run `bin/pareto-doctor` to check local environment health.
-    -   If configuration is suspicious: Validate against schema in `core/models.py`.
-4.  **Escalate:** If the "Cheap" tier (Local Model) returns low-confidence intent or error, escalate to the "Smart" tier with a detailed reasoning log.
+## 🔒 Data Sovereignty & Privacy Guardrails
+1. **Strict Locality**: All telemetry (`evals/*.jsonl`) MUST remain on local storage. Never transmit unencrypted raw prompts or PII to external endpoints.
+2. **PII Sanitization**: When logging user inputs in audit logs, use `user_input[:50]` (truncated) to prevent sensitive data leaks.
+3. **Zero-Leak Policy**: Do not include telemetry or internal error details in Git commits unless explicitly requested for a public issue report.
 
-## 📈 Evaluation-Driven Development (EDD)
-Changes are not "complete" until they are measured.
-- **Mandatory Benchmarking:** Any change to `core/` or `models/config.yaml` must be validated against the existing `evals/` suite.
-- **Audit Logs:** Agents should ensure that any long-running orchestration leaves a traceable entry in `evals/performance_audit.jsonl`.
+## 🛠 Dependency & Environment Stability
+- **Explicit Dependencies**: Before orchestrating, verify `curl`, `jq`, and the active Python virtual environment (`.venv`) are present and functional.
+- **Config Awareness**: Always resolve configuration via `models/config.yaml` to ensure consistency between local dev and production edge environments.`
+## 🛡️ Production Readiness Checklist
 
-## 🛠 Repository Hygiene
-- **Single Source of Truth:** No nested copies (e.g., avoid `Pareto_Frontier/Pareto_Frontier`). Ensure project root is established at the top level.
-- **Minimalist Abstraction:** Prefer simple Shell or Python over heavy libraries unless absolutely necessary for the mission's efficiency goals.
+Before any component is promoted to the production edge environment, agents MUST verify it against these criteria:
 
-## 🗺️ Path and Environment Stability
-To ensure operational integrity across different execution contexts (e.g., running via `-m` vs directly from shell), agents MUST adhere to these path resolution principles:
-1. **Always Use Absolute Paths**: All internal file operations must resolve paths relative to the project root using `Path(__file__).resolve().parent.parent`.
-2. **Avoid Relative Configs in Code**: Never use hardcoded relative strings like `"models/config.yaml"` inside core logic. Always provide a way to resolve them from the project root.
-3. **Environment Awareness**: If an execution environment (like this sandbox) does not have local access to specified endpoints (e.g., Ollama), agents should proactively check connectivity or use fallback defaults defined in `models/config.yaml`.
-
-## 🛡️ Dependency Verification
-Before executing any orchestration task, the agent must verify that required CLI utilities (`curl`, `jq`) are present in the system path and that the virtual environment's dependencies are satisfied.
+1.  **Zero-Latency Regression**: Ensure the Pareto Score (Accuracy/Cost) has not decreased compared to the current baseline in `bench_results.txt`.
+2.  **Observability Parity**: All critical paths must emit at least one `[TRACE]` for intermediate data and one `[METRIC]` for performance-critical operations.
+3.  **Sanitization Check**: Verify that input/output sanitization is active, preventing any raw unescaped characters or unexpected null bytes from passing through the cascade.
+4.  **Dependency Integrity**: Ensure all required shell binaries (`jq`, `curl`) and Python packages are present via `bin/pareto-doctor`.
+5.  **Graceful Degradation**: Test that failure in a "Smart" tier triggers the correct escalation (fallback to local or error) without crashing the orchestrator process.
