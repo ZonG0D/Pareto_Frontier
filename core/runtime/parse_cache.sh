@@ -35,7 +35,7 @@ if [ -f "$CACHE_FILE" ]; then
         # Inject cache hit info into the JSON
         echo "$RAW_CONTENT" | jq --argjson hit '{"cache_hit": true}' '. + $hit'
     else
-        echo "$RAW_content" # This should not happen if we managed it correctly before
+        echo "$RAW_CONTENT"
     fi
 else
     RESULT=$(bash "$ORIGINAL_TOOL" "$INPUT_TEXT")
