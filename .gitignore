@@ -5,3 +5,8 @@ __pycache__/
 data/datasets/*.jsonl
 evals/*.jsonl
 stress_test.sh
+.cache/
+*.log
+prompt_*.log
+__pycache__/
+.DS_Store
