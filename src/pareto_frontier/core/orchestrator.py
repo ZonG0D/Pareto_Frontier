@@ -7,7 +7,7 @@ import yaml
 import requests
 import os
 from pareto_frontier.core.models import FullConfig
-from pareto_frontier.core.runtime.stabilizer import CascadeStabilizer
+from pareto_frontier.core.stabilizer import CascadeStabilizer
 from pareto_frontier.core.metrics_engine import MetricsEngine
 
 def get_project_root():
