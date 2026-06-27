@@ -51,7 +51,7 @@ def log_warn(msg: str):
 
 
 def log_error(msg: str, fatal: bool = False):
-    prefix = "[ERROR]" if fatal else "[INFO]"  # Standardizing on error/info prefixing as per protocol
+    prefix = "[ERROR]" if fatal else "[WARN]"  # Fixed: Non-fatal errors are [WARN]
     print(f"{prefix} {msg}", file=sys.stderr)
 
 
@@ -80,11 +80,7 @@ class Orchestrator:
     def _run_parse_cascade(self, text: str):
         try:
             cheap_tier = self.config.tiers.cheap
-            endpoint = cheap_tier.endpoint if cheap_tier.endpoint.startswith('http') else f"http://{cheap_tier.endpoint}"
-            if not endpoint.endswith('/api/chat'):
-                endpoint = endpoint.rstrip('/') + '/api/chat'
-
-            parser = InputParser(endpoint=endpoint, model=cheap_tier.model)
+            parser = InputParser(endpoint=cheap_tier.endpoint, model=cheap_tier.model)
             return parser.parse_via_ollama(text)
         except Exception as e:
             print(f"[ERROR] Error during parsing stage: {e}", file=sys.stderr)

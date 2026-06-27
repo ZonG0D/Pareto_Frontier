@@ -72,7 +72,9 @@ class InputParser:
                 "semantic_helper": intent,
                 "cache_hit": False
             }
-        except Exception:
+        except Exception as e:
+            import sys
+            print(f"[ERROR] Parsing failed, using fallback. Error: {e}", file=sys.stderr)
             # Fallback if LLM fails or JSON is bad
             return {
                 "cleaned_text": self.clean_text(raw_input),
