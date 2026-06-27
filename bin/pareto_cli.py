@@ -4,36 +4,34 @@ import json
 import sys
 from pathlib import Path
 import subprocess
+import threading
+import os
 
-# Simple ANSI color codes for "People First" UI
 class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'
-    FAIL = '\033[91m'
+    FAIL = '\033[1;31m'
     ENDC = '\033[0m'
     BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 def main():
     parser = argparse.ArgumentParser(description="Pareto Frontier: High-Efficiency LLM Stack CLI")
     parser.add_argument("prompt", nargs='*', help="The prompt to process. If empty, reads from stdin.")
+    parser.add_argument('--stats', action='store_true', help="Show performance metrics")
     args = parser.parse_args()
 
-    # Determine input text
     if args.prompt:
         user_input = " ".join(args.prompt)
     else:
-        # Read from stdin (useful for piping: echo "hi" | pareto-run)
         user_input = sys.stdin.read().strip()
 
     if not user_input:
-        print(f"{Colors.FAIL}[ERROR]{Colors.ENDC} No input detected. Please provide a prompt or pipe text into it.")
+        print(f"{Colors.FAIL}[ERROR]{Colors.ENDC} No input detected.")
         sys.exit(1)
 
-    # Find project root (assumes this script is in /home/anonz/Pareto_Frontier/bin/)
     script_dir = Path(__file__).resolve().parent
     project_root = script_dir.parent
     orchestrator_path = project_root / "core" / "orchestrator.py"
@@ -44,32 +42,29 @@ def main():
 
     print(f"\n{Colors.OKCYAN}{Colors.BOLD}🚀 Pareto Frontier Execution{Colors.ENDC}")
     print(f"{Colors.OKBLUE}----------------------------{Colors.ENDC}")
-    print(f"Prompt: {user_input}")
-    print("")
+    print(f"Prompt: {user_input[:100]}{'...' if len(user_input) > 100 else ''}")
 
     try:
-        # Execute the orchestrator via the project's virtual environment if it exists, 
-        # otherwise use current python. 
         python_exe = str(project_root / ".venv" / "bin" / "python3") if (project_root / ".venv").exists() else sys.executable
-        
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(project_root)
+
         process = subprocess.Popen(
-            [python_exe, str(orchestrator_path), user_input],
+            [python_exe, "-m", "core.orchestrator", user_input],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            env=env
         )
 
-        # Capture stderr for the "Pretty" UI (the orchestrator logs to stderr)
         def log_stream(stream):
             for line in stream:
                 if line.strip():
                     print(f"  {line.strip()}")
 
-        import threading
         error_thread = threading.Thread(target=log_stream, args=(process.stderr,))
         error_thread.start()
 
-        # Capture the JSON stdout from the orchestrator
         stdout, _ = process.communicate()
         error_thread.join()
 
@@ -77,12 +72,29 @@ def main():
             print(f"\n{Colors.FAIL}[FATAL ERROR]{Colors.ENDC}")
             sys.exit(1)
 
-        # Parse and pretty-print the final JSON result
         data = json.loads(stdout.strip())
-        
+
+        if args.stats:
+            metrics = data.get('_metrics', {})
+            print(f"\n{Colors.OKCYAN}{Colors.BOLD}📊 PERFORMANCE METRICS{Colors.ENDC}")
+            print("-" * 25)
+            for stage in metrics.get('stages', []):
+                name = stage.get('name', 'Unknown').capitalize()
+                ms = stage.get('latency_ms', 0)
+                print(f"  {name:<12}: {ms} ms")
+            if metrics.get('cache_hit'):
+                print("  Cache Status: HIT ✨")
+            else:
+                print("  Cache Status: MISS ❄️")
+            print(f"Total Latency: {metrics.get('total_latency_ms', 0)} ms")
+            print("-" * 25)
+
         print(f"\n{Colors.OKGREEN}{Colors.BOLD}✨ FINAL RESPONSE{Colors.ENDC}")
         print("-" * 25)
-        print(data['reasoning'])
+        if 'reasoning' in data:
+            print(data['reasoning'])
+        else:
+            print(str(data))
         print("-" * 25)
 
     except json.JSONDecodeError:

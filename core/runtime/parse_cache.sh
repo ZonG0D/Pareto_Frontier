@@ -1,46 +1,25 @@
 #!/bin/bash
+set -euo pipefail
 
-# --- Configuration ---
 CACHE_DIR="$HOME/.cache/parse_input_shim"
-MAX_SIZE_BYTES=1073741824  # Hard Ceiling: 1 GB
-SAFE_FLOOR_BYTES=536870912 # Safety Buffer (512 MB)
-
-# Use a relative path to find the partner script in the same directory
+MAX_SIZE_BYTES=1073741824
+SAFE_FLOOR_BYTES=536870912
 ORIGINAL_TOOL="$(dirname "$(readlink -f "$0")")/parse-input.sh"
 
-# Ensure cache directory exists
 mkdir -p "$CACHE_DIR"
 
-# --- Background Rotation Logic ---
 rotate_cache() {
     local current_size=$(du -sb "$CACHE_DIR" | awk '{print $1}')
     if [ "$current_size" -gt "$MAX_SIZE_BYTES" ]; then
-        find "$CACHE_DIR" -type f -printf "%T@ %s\t%p\n" | \
-        sort -rn | \
-        awk -v limit="$SAFE_FLOOR_BYTES" 'BEGIN {FS="\t"; total=0} 
-           {
-             if (total < limit) {
-               total += $2;
-             } else {
-               print $3;
-             }
-           }' | xargs -d '\n' rm -f -- 2>/dev/null
+        find "$CACHE_DIR" -type f -printf "%T@ %s\t%p\n" | sort -rn | awk -v limit="$SAFE_FLOOR_BYTES" 'BEGIN {FS="\t"; total=0} {if (total < limit) {total += $2;} else {print $3;}}' | xargs -d '\n' rm -f -- 2>/dev/null || true
     fi
 }
 
 rotate_cache &!
 
-# --- Input Capture and Hashing ---
-# We receive the entire user input as a single string in $1.
 INPUT_TEXT="$1"
-
-if [ ! -t 0 ] && [ -z "$INPUT_TEXT" ]; then
-    INPUT_TEXT=$(cat)
-fi
-
-if [ -z "$INPUT_TEXT" ]; then
-    exit 0
-fi
+[[ ! -t 0 && -z "$INPUT_TEXT" ]] && INPUT_TEXT=$(cat)
+[[ -z "$INPUT_TEXT" ]] && exit 0
 
 HASH_TMP=$(mktemp /tmp/parse_cache_hash.XXXXXX)
 echo -n "$INPUT_TEXT" > "$HASH_TMP"
@@ -49,19 +28,21 @@ rm -f "$HASH_TMP"
 
 CACHE_FILE="$CACHE_DIR/$CACHE_ID.cache"
 
-# --- Execution / Cache Check (The LRU Logic) ---
-
 if [ -f "$CACHE_FILE" ]; then
     touch "$CACHE_FILE"
-    cat "$CACHE_FILE"
+    RAW_CONTENT=$(cat "$CACHE_FILE")
+    if echo "$RAW_CONTENT" | jq . >/dev/null 2>&1; then
+        # Inject cache hit info into the JSON
+        echo "$RAW_CONTENT" | jq --argjson hit '{"cache_hit": true}' '. + $hit'
+    else
+        echo "$RAW_content" # This should not happen if we managed it correctly before
+    fi
 else
     RESULT=$(bash "$ORIGINAL_TOOL" "$INPUT_TEXT")
-    
     if [ -n "$RESULT" ]; then
         echo "$RESULT" > "$CACHE_FILE"
+        echo "$RESULT"
     fi
-    
-    echo "$RESULT"
 fi
 
 exit 0

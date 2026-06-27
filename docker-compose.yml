@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  pareto:
+    build: .
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_ENDPOINT=http://ollama:11434/api/chat
+    stdin_open: true
+    tty: true
+
+volumes:
+  ollama_data:
