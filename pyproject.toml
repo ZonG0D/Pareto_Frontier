@@ -26,4 +26,4 @@ pareto-run = "pareto_frontier.cli:main"
 pareto-doctor = "pareto_frontier.cli:diagnose"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
