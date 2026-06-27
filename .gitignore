@@ -3,3 +3,5 @@ __pycache__/
 .env
 .venv/
 data/datasets/*.jsonl
+evals/*.jsonl
+stress_test.sh
