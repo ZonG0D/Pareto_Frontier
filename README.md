@@ -14,7 +14,7 @@ Pareto Frontier is an orchestration layer designed to maximize AI accuracy while
 ```bash
 git clone https://github.com/ZonG0D/Pareto_Frontier Pareto_Frontier
 cd Pareto_Frontier
-./setup.sh
+./scripts/setup-env.sh
 ./scripts/setup-env.sh
 source .venv/bin/activate
 ```
