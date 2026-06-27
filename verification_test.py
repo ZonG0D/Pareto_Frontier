@@ -37,9 +37,9 @@ def run_manual_benchmark():
             res = orch.run_cascade(p)
             duration = time.time() - start
             
-            # Extract metrics for evaluation (simulating what benchmark would do)
-            accuracy = 0.95 # Simulated ground truth as we don't have an LLM judge here
-            compute = res['_metrics'].get('total_latency_ms', 1000) / 1000.0
+            # Extract metrics for evaluation (simulated ground truth as we don't have an LLM judge here)
+            accuracy = 0.95 
+            compute = res['_metrics'].get('total_cost', 1.0)
             latency = duration
             
             results.append({
@@ -52,12 +52,12 @@ def run_manual_benchmark():
 
     if results:
         summary = metrics_engine.evaluate_system(results)
-        print("\\n--- VERIFICATION SUMMARY ---")
+        print("\n--- VERIFICATION SUMMARY ---")
         print(json.dumps(summary, indent=2))
         if summary and summary.get('pareto_score', 0) > 0:
-            print("\\n✅ SUCCESS: Pareto Score calculated.")
+            print("\n✅ SUCCESS: Pareto Score calculated.")
         else:
-            print("\\n❌ FAILURE: No valid Pareto Score computed.")
+            print("\n❌ FAILURE: No valid Pareto Score computed.")
     else:
         print("No results collected.")
 

@@ -224,7 +224,7 @@ class Orchestrator:
         })
 
         total_duration = (time.perf_counter() - start_time) * 1000
-        metrics["total_latency_ms"] = round(total_duration, 3)
+        metrics["total_latency_ms"] = round(total_duration * 1000, 3)
         
         is_error = any(err in reasoning_result.lower() for err in ["error", "unavailable", "failed"])
         accuracy = 0.95 if (not is_error and len(reasoning_result) > 10) else 0.0
