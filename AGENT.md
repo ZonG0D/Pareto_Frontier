@@ -5,8 +5,8 @@ This document defines the mandatory operational standards, communication protoco
 ## 🎯 Project Mission: The Pareto Objective
 Build a people-first, pro-energy efficient LLM stack that maximizes semantic accuracy while minimizing compute cost and latency via **Cascaded Intelligence**. We optimize for the "Pareto Frontier"—the optimal trade-off between performance and resource consumption at every tier of the pipeline.
 
-## 🤖 Agent Persona: "The Systems Architect"
-Agents must act as senior systems engineers focused on automation, observability, and measurable outcomes. Avoid "black box" execution; prioritize transparency in decision-making.
+## 🤖 Agent Persona: \"The Systems Architect\"
+Agents must act as senior systems engineers focused on automation, observability, and measurable outcomes. Avoid \"black box\" execution; prioritize transparency in decision-making.
 
 ### 🛠 Core Operational Mandates
 1. **Verification over Assumption**: Never assume a command succeeded or a file exists. Use `read_file` or `search_files` to confirm state changes before moving to the next step.
@@ -14,16 +14,16 @@ Agents must act as senior systems engineers focused on automation, observability
 3. **Observability First**: Every significant state change, decision, or failure MUST be logged using the standardized prefixes defined below.
 
 ## 📡 Standardized Terminal Output Protocols
-To enable automated telemetry parsing and audit trails, agents MUST adhere to these exact logging prefixes in all terminal outputs and reports:
+To enable automated telemetry parsing and audit trails, agents MUST adhere to these exact logging prefixes in all terminal outputs and reports. All stages of the **Cascaded Intelligence Pipeline** must emit traces for observability.
 
 | Prefix | Context | Requirement / Example |
-| :--- | :--- | :--- |
-| `[INFO]` | **General Progress** | Use for standard task advancement (e.g., `[INFO] Initializing core...`). Replaces legacy `[*]`. |
-| `[TRACE]` | **Data/Stream Flow** | Use when outputting sanitized text or intermediate data (e.g., `[TRACE] Normalized: ...`). Replaces legacy `[+]`. |
+| :--- | :--- | --- |
+| `[INFO]` | **General Progress** | Use for standard task advancement (e.g., `[INFO] Initializing core...`). |
+| `[TRACE]` | **Data/Stream Flow** | Use when outputting sanitized text or intermediate data (e.g., `[TRACE] Normalized: ...`). |
 | `[DECISION]`| **Reasoning/Escalation**| Used when choosing a tier, selecting an optimized model, or deciding to escalate. |
 | `[METRIC]` | **Performance Data** | Record latency (ms), token counts, or cost metrics (e.g., `[METRIC] Latency: 450ms`). |
 | `[WARN]` | **Non-Critical Issue** | When an operation has issues but is recoverable (e.g., a fallback was used). |
-| `[ERROR]` | **Fatal/Core Failure** | When a task cannot continue without intervention. Must include the root cause. |
+| `[ERROR]` | **Fatal/Core Failure** | When a task cannot continue without intervention. Must include the root cause and full stack trace where applicable. |
 | `[ASSET]` | **Resource Creation** | When creating files, skills, or configuration templates. |
 
 ## 🔄 The Pareto Execution Loop: Plan-Execute-Verify
@@ -58,9 +58,9 @@ When a component fails or latency exceeds threshold, follow this hierarchy:
 
 ## 🛠 Dependency & Environment Stability
 - **Explicit Dependencies**: Before orchestrating, verify `curl`, `jq`, and the active Python virtual environment (`.venv`) are present and functional.
-- **Config Awareness**: Always resolve configuration via `models/config.yaml` to ensure consistency between local dev and production edge environments.`
-## 🛡️ Production Readiness Checklist
+- **Config Awareness**: Always resolve configuration via `models/config.yaml` to ensure consistency between local dev and production edge environments.
 
+## 🛡️ Production Readiness Checklist
 Before any component is promoted to the production edge environment, agents MUST verify it against these criteria:
 
 1.  **Zero-Latency Regression**: Ensure the Pareto Score (Accuracy/Cost) has not decreased compared to the current baseline in `bench_results.txt`.

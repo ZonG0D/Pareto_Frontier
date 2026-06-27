@@ -1,13 +1,11 @@
-import sys
 import os
+import time
 import json
 import yaml
-import time
-import requests
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-# Ensure project root is in the path
+# Ensure project root is in the path so we can use 'from core... imports' anywhere.
 PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
@@ -23,7 +21,9 @@ except ImportError as e:
 
 def sanitize_text(text: str) -> str:
     if not isinstance(text, str): return ""
-    text = "".join(char for char in text if char.isprintable() or char in "\\n\\r")
+    # Remove control characters and unprintable whitespace/null bytes
+    text = "".join(char for char in text if char.isprintable() or char in "\n\r")
+    text = text.replace('\u200b', ' ').replace('\xa0', ' ').replace('\ufeff', ' ').replace('\r', '')
     return " ".join(text.split())
 
 def log_info(msg): print(f"[INFO] {msg}", file=sys.stderr)
@@ -36,7 +36,7 @@ def log_error(msg, fatal=False):
     print(f"{prefix} {msg}", file=sys.stderr)
 
 class Orchestrator:
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(self, config_path=None):
         self.base_dir = Path(__file__).resolve().parent.parent
         if config_path is None:
             config_path = self.base_dir / "models" / "config.yaml"
@@ -59,76 +59,36 @@ class Orchestrator:
         try:
             cheap_tier = self.config.tiers.cheap
             endpoint = cheap_tier.endpoint if cheap_tier.endpoint.startswith('http') else f"http://{cheap_tier.endpoint}"
-            if not endpoint.endswith('/api/chat'):
-                endpoint = endpoint.rstrip('/') + '/api/chat'
-
             parser = InputParser(endpoint=endpoint, model=cheap_tier.model)
             return parser.parse_via_ollama(text)
         except Exception as e:
             log_error(f"Error during parsing stage: {e}")
             return None
 
-    def _run_smart_model(self, text: str, protocol: Optional[str] = None) -> tuple[str, int]:
+    def _run_smart_model(self, text: str):
         tier = self.config.tiers.smart
         endpoint = tier.endpoint if tier.endpoint.startswith('http') else f"http://{tier.endpoint}"
-        if not endpoint.endswith('/api/chat'):
-             endpoint = endpoint.rstrip('/') + '/api/chat'
-
-        # --- SKELETON PREDICTION STEP (Pareto Efficiency) ---
-        skeleton_context = ""
-        try:
-            from core.runtime.skeletonizer import SkeletonGenerator
-            skeleton_gen = SkeletonGenerator(model=self.config.tiers.cheap.model) 
-            skeleton = skeleton_gen.generate_skeleton(text)
-            if skeleton:
-                skeleton_context = f"\\n[STRUCTURED SKELETON TO FOLLOW:\\n{skeleton}\\n]\\n"
-                log_decision("Skeleton prediction acquired from Cheap Tier. Injecting into Smart Tier.")
-        except Exception as e:
-            log_warn(f"Skeleton generation skipped/failed: {e}")
-
-        augmented_prompt = text + skeleton_context
-        if protocol:
-            augmented_prompt += f"\\nPROTOCOL:\\n{protocol}"
 
         def smart_api_call():
+            import requests
             payload = {
                 "model": tier.model, 
-                "messages": [{"role": "user", "content": augmented_prompt}], 
+                "messages": [{"role": "user", "content": text}], 
                 "stream": False
             }
             response = requests.post(endpoint, json=payload, timeout=tier.timeout)
             response.raise_for_status()
             res_json = response.json()
-            
-            content = ""
             if 'message' in res_json: 
                 content = res_json['message']['content']
             elif 'choices' in res_json: 
                 content = res_json['choices'][0]['message']['content']
             else: 
                 content = str(res_json)
-
-            prompt_tokens = res_json.get('prompt_eval_count', 0)
-            response_tokens = res_json.get('eval_count', 0)
-            total_tokens = prompt_tokens + response_tokens
-
-            return sanitize_text(content), total_tokens
+            return sanitize_text(content)
 
         fallback_msg = f"Error: Smart tier unavailable at {endpoint}"
-        
-        captured_tokens = [0]
-
-        def wrapped_for_stabilizer():
-            try:
-                res_text, tokens = smart_api_call()
-                captured_tokens[0] = tokens
-                return res_text
-            except Exception as e:
-                log_error(f"Smart tier exception: {e}")
-                raise e
-
-        reasoning_text = self.stabilizer.wrap_smart_model(wrapped_for_stabilizer, fallback_text=fallback_msg)
-        return reasoning_text, captured_tokens[0]
+        return self.stabilizer.wrap_smart_model(lambda: smart_api_call(), fallback_text=fallback_msg)
 
     def run_cascade(self, user_input: str):
         from datetime import datetime
@@ -139,66 +99,55 @@ class Orchestrator:
         metrics = {"stages": [], "total_latency_ms": 0, "cache_hit": False}
         log_info(f"Initiating Cascade for input: '{user_input[:50]}...'")
 
-        # --- STAGE 1: Text Cache (Pattern Identification / Intent Discovery) --
+        # --- STAGE 1: Text Cache Check (The "Instant" Tier) ---
         stage_start = time.perf_counter()
         match = self.text_cache.find_best_match(user_input)
         stage_duration = (time.perf_counter() - stage_start) * 1000
 
-        parsed_json = {"cleaned_text": user_input, "semantic_helper": "", "cache_hit": False}
-        lego_protocol = None
-
         if match:
-            log_decision(f"Pattern Matched in Cache (Match type: {match['similarity']})")
+            log_decision(f"Cache HIT detected (Match type: {match['response'].get('match_type', 'exact')})")
+            total_duration = (time.perf_counter() - start_time) * 1000
             metrics["cache_hit"] = True
-            parsed_json["semantic_helper"] = match['response'].get('semantic_helper', 'default')
-            parsed_json["cache_hit"] = True
-        else:
-            log_trace("No exact pattern matched in TextCache.")
-
-        metrics["stages"].append({
-            "name": "pattern_match", 
-            "latency_ms": round(stage_duration, 2), 
-            "cached": match is not None
-        })
-
-        # --- STAGE 2: Parsing & Intent Refinement (Cheap Tier) --
-        if not match:
-            stage_start = time.perf_counter()
-            parsed_json = self._run_parse_cascade(user_input)
-            if not parsed_json:
-                log_error("Parsing stage failed.", fatal=True)
-                raise Exception("Failed to get a valid response from parsing.")
-
-            if parsed_json.get('cache_hit', False):
-                 metrics["cache_hit"] = True
-            
-            stage_duration = (time.perf_counter() - stage_start) * 1000
             metrics["stages"].append({
-                "name": "parsing", 
+                "name": "text_cache", 
                 "latency_ms": round(stage_duration, 2), 
-                "cached": parsed_json.get('cache_hit', False)
+                "cached": True
             })
+            return {
+                "original": user_input,
+                "parsed": match['response'].get('parsed', {"cleaned_text": user_input, "semantic_helper": "Cached result", "cache_hit": True}),
+                "reasoning": match['response']['resp'],
+                "_metrics": metrics,
+                "_accuracy": 1.0,
+                "_cost": 0.000001,
+            }
+
+        # --- STAGE 2: Parsing & Cache Check (Cheap Tier) ---
+        stage_start = time.perf_counter()
+        parsed_json = self._run_parse_cascade(user_input)
+        stage_duration = (time.perf_counter() - stage_start) * 1000
+
+        if not parsed_json:
+            log_error("Parsing/Cache stage failed to produce output.", fatal=True)
+            raise Exception("Failed to get a valid response from parsing.")
+
+        is_cache_hit = parsed_json.get('cache_hit', False)
+        metrics["cache_hit"] = is_cache_hit
+        metrics["stages"].append({
+            "name": "parsing", 
+            "latency_ms": round(stage_duration, 2), 
+            "cached": is_cache_hit
+        })
 
         cleaned_text = parsed_json.get("cleaned_text", user_input)
         semantic_intent = parsed_json.get("semantic_helper", "")
         log_trace(f"Normalized Text: {cleaned_text}")
-        log_trace(f"Semantic Intent Identified: {semantic_intent}")
+        log_trace(f"Semantic Intent: {semantic_intent}")
 
-        # --- STAGE 3: Smart Reasoning Tier with Lego Injection (The Synthesis Stage) --
+        # --- STAGE 3: Smart Reasoning Tier ---
         stage_start = time.perf_counter()
-        
-        if semantic_intent and semantic_intent != "default" and semantic_intent != "Parsed":
-            lego_file = self.base_dir / "core" / "legos" / f"{semantic_intent}.md"
-            if lego_file.exists():
-                try:
-                    with open(lego_file, 'r') as f:
-                        lego_protocol = f.read().strip()
-                    log_decision(f"Lego Injected: {semantic_intent}")
-                except Exception as e:
-                    log_warn(f"Failed to read lego file {lego_file}: {e}")
-
-        log_decision("Escalating to Smart Tier for dynamic synthesis...")
-        reasoning_result, response_tokens = self._run_smart_model(cleaned_text, protocol=lego_protocol)
+        log_decision("Escalating to Smart Tier for reasoning...")
+        reasoning_result = self._run_smart_model(cleaned_text)
         stage_duration = (time.perf_counter() - stage_start) * 1000
         metrics["stages"].append({
             "name": "reasoning", 
@@ -211,16 +160,22 @@ class Orchestrator:
         is_error = any(err in reasoning_result.lower() for err in ["error", "unavailable", "failed"])
         accuracy = 0.95 if (not is_error and len(reasoning_result) > 10) else 0.0
 
+        cheap_tier = self.config.tiers.cheap
+        smart_tier = self.config.tiers.smart
+        parsing_cost = (metrics["stages"][0]["latency_ms"] / 1000) * cheap_tier.unit_cost
+        reasoning_cost = (metrics["stages"][1]["latency_ms"] / 1000) * smart_tier.unit_cost
+        total_cost = parsing_cost + reasoning_cost
+
+        if is_error:
+            log_warn(f"Reasoning error detected: {reasoning_result[:50]}...")
+
+        metrics["total_cost"] = round(total_cost, 6)
+        log_metric(f"Total Latency: {round(total_duration/1000, 3)}s | Total Cost Score: {round(total_cost, 4)}")
+
         if not is_error and cleaned_text:
             self.text_cache.add_entry(user_input, {"resp": reasoning_result, "parsed": parsed_json, "semantic_helper": semantic_intent})
 
-        # Real Cost Calculation using Token Count + Config Pricing
-        tier = self.config.tiers.smart
-        price_per_1k = getattr(tier, 'price_per_1k_tokens', 0.0)
-        cost = (response_tokens / 1000.0) * price_per_1k
-        metrics["total_cost"] = round(cost, 6)
-
-        log_metric(f"Total Latency: {round(total_duration/1000, 3)}s | Cost: ${metrics['total_cost']:.4f}")
+        metrics_engine.log_execution(user_input, accuracy, total_cost, total_duration/1000, is_cache_hit)
 
         return {
             "original": user_input,
@@ -228,8 +183,7 @@ class Orchestrator:
             "reasoning": reasoning_result,
             "_metrics": metrics,
             "_accuracy": accuracy,
-            "_tokens": response_tokens,
-            "_cost": cost
+            "_cost": total_cost
         }
 
 if __name__ == "__main__":
@@ -240,8 +194,5 @@ if __name__ == "__main__":
     if not args.prompt: sys.exit(1)
 
     orch = Orchestrator()
-    try: 
-        result = orch.run_cascade(" ".join(args.prompt))
-        print(json.dumps(result, indent=2))
-    except Exception as e: 
-        log_error(f"FATAL EXECUTION ERROR: {e}", fatal=True); sys.exit(1)
+    try: print(json.dumps(orch.run_cascade(" ".join(args.prompt)), indent=2))
+    except Exception as e: log_error(f"FATAL EXECUTION ERROR: {e}", fatal=True); sys.exit(1)

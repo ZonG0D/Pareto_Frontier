@@ -1,0 +1,25 @@
+#!/bin/bash
+
+LOG_FILE="/home/anonz/Pareto_Frontier/evals/performance_audit.jsonl"
+DETECTOR="python3 /home/anonz/Pareto_Frontier/core/runtime/drift_detector.py --path $LOG_FILE"
+
+RESULT=$($DETECTOR)
+
+if [[ "$RESULT" == *"STATUS:DRIFT_DETECTED"* ]]; then
+    echo "[ALERT] Pareto Drift Detected!"
+    echo "Details: $RESULT"
+elif [[ "$RESULT" == *"STATUS:INSUFFICIENT_DATA"* ]]; then
+    echo "[INFO] Insufficient data for drift analysis."
+else
+    # Clean up the output to make it pretty if it's the STABLE case
+    # The python script prints STATUS, RATIO, and EFFICIENCY
+    STATUS=$(echo $RESULT | sed 's/.*STATUS:\([^|]*\).*/\1/')
+    RATIO=$(echo $RESULT | sed 's/.*RATIO:\([^|]*\).*/\1/')
+    EFF=$(echo $RESULT | sed 's/.*EFFICIENCY:.*//')
+    
+    if [ "$STATUS" = "STABLE" ]; then
+        echo "[OK] Pareto Frontier is stable. Ratio: $RATIO (Current Eff: $EFF)"
+    else
+        echo "[UNKNOWN STATUS]: $RESULT"
+    fi
+fi

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 from typing import List, Optional, Union
 
 class ModelTierConfig(BaseModel):
@@ -6,6 +6,8 @@ class ModelTierConfig(BaseModel):
     model: str
     timeout: int = 30
     retry_count: int = 2
+    price_per_1k_tokens: float = 0.0  # Cost factor per 1k tokens
+    unit_cost: float = 0.0            # Legacy fallback cost factor
 
 class ParsingConfig(BaseModel):
     cleaned_key: str = "cleaned_text"

@@ -1,4 +1,4 @@
-# Pareto Frontier - Model Configuration (Smoke Test Mode)
+# Pareto Frontier - Model Configuration (Production-Ready)
 
 tiers:
   cheap:
@@ -6,12 +6,14 @@ tiers:
     model: "gemma3n:e2b-it-q4_K_M"
     timeout: 15
     retry_count: 2
+    price_per_1k_tokens: 0.01  # Simulated local cost
 
   smart:
     endpoint: "http://172.16.30.8:11434/api/chat"
     model: "gemma3n:e2b-it-q4_K_M"
     timeout: 60
     retry_count: 3
+    price_per_1k_tokens: 0.1   # Simulated local cost (heavier model)
 
 parsing:
   cleaned_key: "cleaned_text"
@@ -19,3 +21,4 @@ parsing:
 
 defaults:
   ollama_fallback: "http://172.16.30.8:11434/api/chat"
+
