@@ -11,16 +11,23 @@ from pareto_frontier.core.stabilizer import CascadeStabilizer
 from pareto_frontier.core.metrics_engine import MetricsEngine
 from pareto_frontier.core.discovery import OllamaDiscoverer, DiscoveryError
 
+
 def get_project_root():
     curr = Path(__file__).resolve()
     for p in curr.parents:
-        if (p / "pyproject.py").exists() or (p / "pyproject.toml").exists(): return p
+        if (p / "pyproject.py").exists() or (p / "pyproject.toml").exists():
+            return p
     return curr.parent.parent.parent
 
+
 def sanitize_text(text: str) -> str:
-    if not isinstance(text, str): return ""
-    text = "".join(char if char.isprintable() or char in "\n\r" else " " for char in text)
+    if not isinstance(text, str):
+        return ""
+    text = "".join(
+        char if char.isprintable() or char in "\n\r" else " " for char in text
+    )
     return text.replace("\r\n", "\n").replace("\r", "\n")
+
 
 class Orchestrator:
     def __init__(self, config_path: Optional[Path] = None):
@@ -32,22 +39,25 @@ class Orchestrator:
 
         # Handle cases where models/config.yaml might not exist yet in early dev
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 self.config = FullConfig(**yaml.safe_load(f))
         except Exception:
-            class EmptyConfig: pass
+
+            class EmptyConfig:
+                pass
+
             self.config = EmptyConfig()
 
         # Discovery phase during initialization
-        ollama_host_from_config = getattr(self.config, 'ollama_host', None)
+        ollama_host_from_config = getattr(self.config, "ollama_host", None)
         discoverer = OllamaDiscoverer(config_fallback_host=ollama_host_from_config)
         discovery_result = discoverer.find_service()
 
-        if discovery_result['status'] == 'failed':
+        if discovery_result["status"] == "failed":
             self.ollama_host = None
-            self.discovery_error = discovery_result['reason']
+            self.discovery_error = discovery_result["reason"]
         else:
-            self.ollama_host = discovery_result['url']
+            self.ollama_host = discovery_result["url"]
             self.discovery_error = None
 
     def run_cascade(self, text: str):
@@ -56,14 +66,17 @@ class Orchestrator:
                 "reasoning": "CRITICAL ERROR: Ollama service not found.",
                 "_metrics": {"status": "fail"},
                 "_cost": 0.0,
-                "_error_message": self.discovery_error
+                "_error_message": self.discovery_error,
             }
 
         start = time.perf_counter()
         # Simulating response for a production-ready smoke test
         res = {
-            "reasoning": f"Processed: {text}", 
-            "_metrics": {"total_latency_ms": (time.perf_counter()-start)*100, "cache_hit": False},
-            "_cost": 0.05
+            "reasoning": f"Processed: {text}",
+            "_metrics": {
+                "total_latency_ms": (time.perf_counter() - start) * 100,
+                "cache_hit": False,
+            },
+            "_cost": 0.05,
         }
         return res

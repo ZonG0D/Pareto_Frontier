@@ -1,14 +1,17 @@
 """Pareto Frontier Command Line Interface"""
+
 import argparse
 import sys
 from pareto_frontier import Orchestrator
 
+
 class Colors:
-    OKCYAN = '\033[96m'
-    FAIL = '\033[1;31m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    GREEN = '\033[92m'
+    OKCYAN = "\033[96m"
+    FAIL = "\033[1;31m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    GREEN = "\033[92m"
+
 
 def main():
     parser = argparse.ArgumentParser(description="Pareto Frontier CLI")
@@ -30,11 +33,14 @@ def main():
         prompt = " ".join(args.prompt)
         result = orch.run_cascade(prompt)
         if args.stats:
-            m = result['_metrics']
-            print(f"\n[STATS] Latency: {m['total_latency_ms']:.2f}ms, Cost: ${result['_cost']}")
+            m = result["_metrics"]
+            print(
+                f"\n[STATS] Latency: {m['total_latency_ms']:.2f}ms, Cost: ${result['_cost']}"
+            )
         print(f"\n{Colors.GREEN}RESPONSE:{Colors.ENDC}\n{result['reasoning']}")
     elif args.command == "doctor":
         print("System OK.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

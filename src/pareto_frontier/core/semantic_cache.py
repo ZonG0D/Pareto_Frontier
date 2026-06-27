@@ -9,6 +9,7 @@ class SemanticCache:
     A lightweight semantic cache that uses vector embeddings to find similar queries.
     Uses cosine similarity to determine if a cached response is 'close enough'.
     """
+
     def __init__(self, cache_dir: str = ".cache/semantic", threshold: float = 0.95):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -28,12 +29,11 @@ class SemanticCache:
     def add_entry(self, text: str, embedding: list[float], response: Dict):
         """Appends a new entry to the semantic store."""
         try:
-            with open(self.store_file, 'a') as f:
-                f.write(json.dumps({
-                    "text": text,
-                    "vec": embedding,
-                    "resp": response
-                }) + '\n')
+            with open(self.store_file, "a") as f:
+                f.write(
+                    json.dumps({"text": text, "vec": embedding, "resp": response})
+                    + "\n"
+                )
         except Exception as e:
             print(f"[ERROR] Failed to write semantic cache: {e}")
 
@@ -46,19 +46,16 @@ class SemanticCache:
         best_resp = None
 
         try:
-            with open(self.store_file, 'r') as f:
+            with open(self.store_file, "r") as f:
                 for line in f:
                     data = json.loads(line)
-                    sim = self._cosine_similarity(query_embedding, data['vec'])
+                    sim = self._cosine_similarity(query_embedding, data["vec"])
                     if sim > best_sim:
                         best_sim = sim
-                        best_resp = data['resp']
+                        best_resp = data["resp"]
 
             if best_resp and best_sim >= self.threshold:
-                return {
-                    "response": best_resp,
-                    "similarity": round(best_sim, 4)
-                }
+                return {"response": best_resp, "similarity": round(best_sim, 4)}
         except Exception as e:
             print(f"[ERROR] SemanticCache Search Error: {e}")
 

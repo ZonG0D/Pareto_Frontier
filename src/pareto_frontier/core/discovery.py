@@ -3,9 +3,12 @@ import requests
 import os
 from typing import Optional, Dict, Any
 
+
 class DiscoveryError(Exception):
     """Raised when a required service is not found."""
+
     pass
+
 
 class OllamaDiscoverer:
     def __init__(self, config_fallback_host: Optional[str] = None):
@@ -18,7 +21,7 @@ class OllamaDiscoverer:
             # Use a short timeout to prevent blocking the orchestration cascade
             response = requests.get(f"{url}{self.health_endpoint}", timeout=1.5)
             return response.status_code == 200
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        except requests.exceptions.ConnectionError, requests.exceptions.Timeout:
             return False
 
     def find_service(self) -> Dict[str, Any]:
@@ -36,9 +39,9 @@ class OllamaDiscoverer:
                 return {"status": "ready", "url": normalized, "source": "environment"}
             else:
                 return {
-                    "status": "failed", 
-                    "url": normalized, 
-                    "reason": f"Environment variable OLLAMA_HOST is set to {normalized}, but service is unreachable."
+                    "status": "failed",
+                    "url": normalized,
+                    "reason": f"Environment variable OLLAMA_HOST is set to {normalized}, but service is unreachable.",
                 }
 
         # 2. Check config fallback (passed from Orchestrator)
@@ -48,9 +51,9 @@ class OllamaDiscoverer:
                 return {"status": "ready", "url": normalized, "source": "config"}
             else:
                 return {
-                    "status": "failed", 
-                    "url": normalized, 
-                    "reason": f"Configured host {normalized} is unreachable."
+                    "status": "failed",
+                    "url": normalized,
+                    "reason": f"Configured host {normalized} is unreachable.",
                 }
 
         # 3. Localhost scan
@@ -68,7 +71,7 @@ class OllamaDiscoverer:
                 "2. To use a remote instance, set the OLLAMA_HOST environment variable:\n"
                 "   export OLLAMA_HOST='http://<remote-ip>:11434'\n"
                 "3. Or update your configuration file with the correct endpoint."
-            )
+            ),
         }
 
     def _normalize_url(self, url: str) -> str:

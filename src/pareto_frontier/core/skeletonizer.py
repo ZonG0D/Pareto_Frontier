@@ -7,7 +7,9 @@ class SkeletonGenerator:
     Generates a structural markdown skeleton for input prompts to guide LLMs.
     """
 
-    def __init__(self, endpoint: str = "http://localhost:11434/api/chat", model: str = "gemma:2b"):
+    def __init__(
+        self, endpoint: str = "http://localhost:11434/api/chat", model: str = "gemma:2b"
+    ):
         self.endpoint = endpoint
         self.model = model
 
@@ -17,9 +19,14 @@ class SkeletonGenerator:
         """
         payload = {
             "model": self.model,
-            "messages": [{"role": "user", "content": f"Generate a concise markdown structure (outline) for: {prompt}"}],
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"Generate a concise markdown structure (outline) for: {prompt}",
+                }
+            ],
             "stream": False,
-            "format": "json"
+            "format": "json",
         }
 
         try:
@@ -30,5 +37,5 @@ class SkeletonGenerator:
             return content
         except Exception as e:
             # We do not log here to avoid cluttering the Orchestrator's level of abstraction
-            # unless explicitly called by something with a logger. 
+            # unless explicitly called by something with a logger.
             return None
