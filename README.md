@@ -11,16 +11,16 @@ Pareto Frontier is an orchestration layer designed to maximize AI accuracy while
 - **Efficiency Optimized:** Designed to run on everything from massive GPU clusters down to Raspberry Pi.
 
 ## 📦 Installation
-
 ```bash
 git clone <repo_url> Pareto_Frontier
 cd Pareto_Frontier
 ./setup.sh
+./scripts/setup-env.sh
+source .venv/bin/activate
 ```
 
 ## 🚀 Quick Start
-
-Use the `pareto-run` CLI for an effortless experience:
+Use the `bin/pareto-run` CLI for an effortless experience:
 
 ```bash
 # Direct prompt
@@ -31,12 +31,10 @@ echo "How to optimize LLM inference" | ./bin/pareto-run
 ```
 
 ## 📖 Documentation
-
 For detailed configuration guides and architecture deep-dives, please refer to our [User Guide](docs/USER_GUIDE.md).
 
 ---
 *Build for efficiency. Built for the edge.*
-
 
 ---
 *Project refactored for production-grade structure.*

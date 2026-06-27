@@ -26,11 +26,15 @@ else
 fi
 
 # 4. Ensure all shell scripts are executable
-if [ -d "core/runtime" ]; then
-    echo "[*] Setting execution permissions for core/runtime/*.sh..."
-    chmod +x core/runtime/*.sh
+if [ -d "src/pareto_frontier/core" ]; then
+    echo "[*] Setting execution permissions for src/pareto_frontier/core/*.sh..."
+    if ls src/pareto_frontier/core/*.sh 2>/dev/null; then
+        chmod +x src/pareto_frontier/core/*.sh
+    else
+        echo "[*] No .sh files found in src/pareto_frontier/core/ (this is normal for Python projects)"
+    fi
 else
-    echo "[ERROR] Directory 'core/runtime' not found!"
+    echo "[ERROR] Directory 'src/pareto_frontier/core' not found!"
     exit 1
 fi
 

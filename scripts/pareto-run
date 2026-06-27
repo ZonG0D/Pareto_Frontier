@@ -2,9 +2,9 @@
 # Pareto Frontier - CLI Entry Point
 # This shim ensures the command is run from the project root for relative path stability.
 
-# Get the directory of this script, then go up one level to get the project root
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 VENV_PYTHON="$PROJECT_ROOT/.venv/bin/python3"
 
 if [ ! -f "$VENV_PYTHON" ]; then
@@ -13,5 +13,6 @@ if [ ! -f "$VENV_PYTHON" ]; then
     exit 1
 fi
 
-# Execute the Python CLI with the user's arguments
-exec "$VENV_PYTHON" "$SCRIPT_DIR/pareto_cli.py" "$@"
+# Run CLI with proper PYTHONPATH to find src/pareto_frontier
+cd "$PROJECT_ROOT"
+echo "$@" | "$VENV_PYTHON" "$SCRIPT_DIR/pareto_cli.py"

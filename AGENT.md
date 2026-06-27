@@ -68,3 +68,8 @@ Before any component is promoted to the production edge environment, agents MUST
 3.  **Sanitization Check**: Verify that input/output sanitization is active, preventing any raw unescaped characters or unexpected null bytes from passing through the cascade.
 4.  **Dependency Integrity**: Ensure all required shell binaries (`jq`, `curl`) and Python packages are present via `bin/pareto-doctor`.
 5.  **Graceful Degradation**: Test that failure in a "Smart" tier triggers the correct escalation (fallback to local or error) without crashing the orchestrator process.
+
+## 🧹 Cleanup Summary (2026-09-27)
+- Removed nested duplicate directory `Pareto_Frontier/Pareto_Frontier` that contained an extraneous copy of the repository.
+- Added entries to `.gitignore`: `Pareto_Frontier/` and `src/pareto_frontier.egg-info/` to prevent stray directories from being tracked.
+- Verified all scripts resolve paths relative to project root; updated entrypoint shim behavior accordingly.
