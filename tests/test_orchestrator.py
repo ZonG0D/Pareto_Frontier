@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 from pareto_frontier.core.orchestrator import Orchestrator, sanitize_text
 
 class TestOrchestrator(unittest.TestCase):
-    @patch('core.models.FullConfig')
+    @patch('pareto_frontier.core.models.FullConfig')
     @patch('builtins.open', new_callable=MagicMock)
     def setUp(self, mock_open, mock_config):
         # Mock configuration for testing

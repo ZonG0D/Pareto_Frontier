@@ -1,0 +1,18 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install --upgrade pip
+      - run: pip install -e .
+      - run: pip install -r requirements.txt pytest black flake8
+      - run: pytest tests/ --tb=short
+      - run: black --check src/
+      - run: flake8 src/

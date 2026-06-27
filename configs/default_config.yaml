@@ -1,24 +1,14 @@
-# Pareto Frontier - Model Configuration (Production-Ready)
-
 tiers:
   cheap:
-    endpoint: "http://172.16.30.8:11434/api/chat"
-    model: "gemma3n:e2b-it-q4_K_M"
-    timeout: 15
-    retry_count: 2
-    price_per_1k_tokens: 0.01  # Simulated local cost
-
+    endpoint: http://localhost:11434/api/chat
+    model: ollama-model
+    timeout: 5
   smart:
-    endpoint: "http://172.16.30.8:11434/api/chat"
-    model: "gemma3n:e2b-it-q4_K_M"
-    timeout: 60
-    retry_count: 3
-    price_per_1k_tokens: 0.1   # Simulated local cost (heavier model)
-
+    endpoint: https://api.openai.com/v1/chat/completions
+    model: gpt-4o
+    timeout: 5
 parsing:
-  cleaned_key: "cleaned_text"
-  semantic_helper: "semantic_helper"
-
+  cleaned_key: cleaned_text
+  semantic_helper: semantic_helper
 defaults:
-  ollama_fallback: "http://172.16.30.8:11434/api/chat"
-
+  ollama_fallback: http://localhost:11434/api/chat
