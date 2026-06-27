@@ -30,4 +30,4 @@ where = ["src", "."]
 
 
 [tool.black]
-target-version = "py314"
+target-version = ["py314"]
