@@ -15,7 +15,6 @@ Pareto Frontier is an orchestration layer designed to maximize AI accuracy while
 git clone https://github.com/ZonG0D/Pareto_Frontier Pareto_Frontier
 cd Pareto_Frontier
 ./scripts/setup-env.sh
-./scripts/setup-env.sh
 source .venv/bin/activate
 ```
 
@@ -24,10 +23,10 @@ Use the `bin/pareto-run` CLI for an effortless experience:
 
 ```bash
 # Direct prompt
-./bin/pareto-run "What is the capital of France?"
+./scripts/pareto-run "What is the capital of France?"
 
 # Piping input
-echo "How to optimize LLM inference" | ./bin/pareto-run
+echo "How to optimize LLM inference" | ./scripts/pareto-run
 ```
 
 ## 📖 Documentation
