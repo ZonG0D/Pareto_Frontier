@@ -18,7 +18,7 @@ Maximize Semantic Accuracy while minimizing Compute Cost and Latency (The Pareto
 **Goal**: Reduce the compute "floor" by preventing unnecessary reasoning tasks.
 
 - [ ] **Zero-Cost Filtering (Input Sanitization)**: Implement a pre-orchestration check that identifies low-intent/garbage input and returns an immediate response without invoking LLMs.
-- [ ] **Semantic Cache Refinement**: Enhance `core/runtime/semantic_cache.py` with support for local, fast vector similarity searches to ensure near-zero latency for repeated intent.
+- [ ] **Semantic Cache Refinement**: Enhance `core/semantic_cache.py` with support for local, fast vector similarity searches to ensure near-zero latency for repeated intent.
 - [ ] **Advanced Normalization**: Integrate domain-specific cleanup rules (e.g., log parsing, code sanitization) into the "Silas" normalization engine.
 
 ## 🚀 Phase 3: Deployment & Edge Readiness
