@@ -21,7 +21,7 @@ Recommended for rapid development and profiling. Uses the existing virtual envir
 source .venv/bin/activate
 
 # Run entry point
-./bin/pareto-run "your prompt here"
+./scripts/pareto-run "your prompt here"
 ```
 
 ### 2. Production Mode (Docker)
@@ -44,7 +44,7 @@ Ensures environmental parity and isolation. The project uses `docker-compose` to
 3. **Run client commands:**
    Use `docker exec` to interact with the orchestration container:
    ```bash
-   docker exec -it pareto_orchestrator ./bin/pareto-run "test prompt"
+   docker exec -it pareto_orchestrator ./scripts/pareto-run "test prompt"
    ```
 
 ## Resource Optimization (Pro-Energy Principles)

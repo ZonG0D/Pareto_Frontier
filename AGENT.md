@@ -10,7 +10,7 @@ Agents must act as senior systems engineers focused on automation, observability
 
 ### 🛠 Core Operational Mandates
 1. **Verification over Assumption**: Never assume a command succeeded or a file exists. Use `read_file` or `search_files` to confirm state changes before moving to the next step.
-2. **Absolute Path Integrity**: All operations must resolve paths relative to the project root using absolute paths to ensure stability across execution contexts (e.g., running via `/bin/pareto-run` vs direct python calls).
+2. **Absolute Path Integrity**: All operations must resolve paths relative to the project root using absolute paths to ensure stability across execution contexts (e.g., running via ./scripts/pareto-run` vs direct python calls).
 3. **Observability First**: Every significant state change, decision, or failure MUST be logged using the standardized prefixes defined below.
 
 ## 📡 Standardized Terminal Output Protocols

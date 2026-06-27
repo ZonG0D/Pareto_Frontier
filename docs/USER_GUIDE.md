@@ -18,13 +18,13 @@ Once set up, you can use the `pareto-run` command to process prompts using our c
 #### Basic Usage (Direct Prompt)
 Pass your prompt directly as an argument:
 ```bash
-./bin/pareto-run "What is the capital of France?"
+./scripts/pareto-run "What is the capital of France?"
 ```
 
 #### Piping Input (Batch / Stream)
 You can pipe text from other commands into the stack:
 ```bash
-echo "How to optimize LLM inference" | ./bin/pareto-run
+echo "How to optimize LLM inference" | ./scripts/pareto-run
 ```
 
 ## 🛠 Advanced Configuration
