@@ -7,6 +7,7 @@ import time
 import requests
 import re
 from pathlib import Path
+from typing import Optional # Added to support Type Hinting
 
 try:
     from core.models import FullConfig
@@ -14,6 +15,8 @@ except ImportError:
     # Fallback for when running from different working directories
     sys.path.append(str(Path(__file__).resolve().parent.parent))
     from core.models import FullConfig
+
+from core.runtime.stabilizer import CascadeStabilizer # New Import
 
 def log(message):
     print(f"{message}", file=sys.stderr)
@@ -30,12 +33,23 @@ def sanitize_text(text: str) -> str:
     return text
 
 class Orchestrator:
-    def __init__(self, config_path="models/config.yaml"):
+    def __init__(self, config_path=None):
+        # Determine project root relative to this file (core/orchestrator.py)
+        self.base_dir = Path(__file__).resolve().parent.parent
+        
+        if config_path is None:
+            config_path = self.base_dir / "models" / "config.yaml"
+        else:
+            config_path = Path(config_path)
+            # If the path is relative, make it absolute relative to project root
+            if not config_path.is_absolute():
+                config_path = self.base_dir / config_path
+
         with open(config_path, 'r') as f:
             raw_cfg = yaml.safe_load(f)
             self.config = FullConfig(**raw_cfg)
-        self.base_dir = Path(__file__).resolve().parent.parent
         self.parse_cache_shim = self.base_dir / "core" / "runtime" / "parse_cache.sh"
+        self.stabilizer = CascadeStabilizer() # Initialize Stabilizer
 
     def run_cascade(self, user_input: str):
         start_time = time.perf_counter()
@@ -98,18 +112,25 @@ class Orchestrator:
 
     def _run_smart_model(self, text: str):
         tier = self.config.tiers.smart
-        payload = {"model": tier.model, "messages": [{"role": "user", "content": text}], "stream": False}
-        try:
+
+        def smart_api_call():
+            payload = {"model": tier.model, "messages": [{"role": "user", "content": text}], "stream": False}
             response = requests.post(tier.endpoint, json=payload, timeout=tier.timeout)
             response.raise_for_status()
             res_json = response.json()
-            if 'message' in res_json: content = res_json['message']['content']
-            elif 'choices' in res_json: content = res_json['choices'][0]['message']['content']
-            else: content = str(res_json)
+            if 'message' in res_json: 
+                content = res_json['message']['content']
+            elif 'choices' in res_json: 
+                content = res_json['choices'][0]['message']['content']
+            else: 
+                content = str(res_json)
             return sanitize_text(content)
-        except Exception as e:
-            log(f"[!] Error: {e}")
-            return f"Error: {str(e)}"
+
+        fallback_msg = f"Error: Smart tier unavailable at {tier.endpoint}"
+        return self.stabilizer.wrap_smart_model(
+            lambda: smart_api_call(), 
+            fallback_text=fallback_msg
+        )
 
 if __name__ == "__main__":
     if len(sys.argv) < 2: sys.exit(1)
