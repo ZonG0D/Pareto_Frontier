@@ -27,3 +27,7 @@ pareto-doctor = "pareto_frontier.cli:diagnose"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]
+
+
+[tool.black]
+target-version = "py314"
