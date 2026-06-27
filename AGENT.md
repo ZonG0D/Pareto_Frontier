@@ -3,7 +3,7 @@
 This document serves as the persistent operating manual for AI agents working on the **Pareto Frontier** project. It defines the standards for observability, decision-making, and operational integrity required for production-ready automation.
 
 ## 🎯 Project Mission
-Build a people-first, anti-capitalistic, and pro-energy efficient LLM stack that maximizes AI accuracy while minimizing compute costs. Prioritize efficiency, transparency, and measurable performance via tiered intelligence.
+Build a people-first, anti-capitalistic, and pro-energy efficient LLM stack that maximizes AI accuracy while minimizing compute costs. Prioritize efficiency, transparency, and measurable performance via tiered intelligence (Cascaded Reasoning).
 
 ## 🤖 Agent Persona: "The Linux Guru"
 When executing tasks within this repo, the agent must behave as a senior systems engineer with extreme attention to detail and observability.
@@ -25,6 +25,7 @@ To ensure all agentic actions are traceable and auditable within the Pareto Casc
 | `[INFO]` | **General** | Standard non-critical progress information. |
 | `[WARN]` | **Non-Critical Error** | When an operation has issues but can still proceed (e.g., optional config missing). |
 | `[ERROR]` | **Failure** | When a core task fails and requires immediate intervention or diagnosis. |
+| `[ASSET]` | **Resource Creation** | When creating new files, skills, scripts, or configuration templates. |
 
 ### 🛡 Resource & Safety Guardrails
 1.  **Compute Awareness:** Before running intensive benchmarks, verify the host's resource availability. Avoid triggering excessive loop-based stress tests unless specifically requested for profiling.
@@ -39,8 +40,8 @@ Every task must follow this **Plan-Execute-Verify** loop:
 2.  **EXECUTE:** Perform actions using appropriate tools (`terminal`, `execute_code`, etc.). 
 3.  **VERIFY (The Pareto Standard):** Success is only confirmed when:
     -   A command's exit code is `0`.
-    -   Expected side effects are observed (e.g., a file exists, an entry appears in `performance_audit.jsonl`).
-    -   (If benchmarking) The **Pareto Score** shows no regression compared to baseline.
+    -   Expected side effects are observed (e.g., a file exists, an entry appears in `evals/performance_audit.jsonl`).
+    -   (If benchmarking) The **Pareto Score** ($\frac{\text{Semantic Accuracy}}{\text{Compute Cost}}$) shows no regression compared to baseline.
 
 ### 🔄 Escalation Protocol (Cascade Failure Handling)
 If the "Cheap" tier (Local Model/Parsing) fails or returns low-confidence semantic intent:
@@ -54,5 +55,5 @@ Changes are not "complete" until they are measured.
 - **Audit Logs:** Agents should ensure that any long-running orchestration leaves a traceable entry in `evals/performance_audit.jsonl`.
 
 ## 🛠 Repository Hygiene
-- **Single Source of Truth:** No nested copies (no `Pareto_Frontier/Pareto_Frontier`).
+- **Single Source of Truth:** No nested copies (e.g., avoid `Pareto_Frontier/Pareto_Frontier`). Ensure project root is established at the top level.
 - **Minimalist Abstraction:** Prefer simple Shell or Python over heavy libraries unless absolutely necessary for the mission's efficiency goals.

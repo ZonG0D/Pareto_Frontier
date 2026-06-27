@@ -1,0 +1,93 @@
+#!/bin/bash
+# bin/pareto-doctor - Health check for Pareto Frontier environment
+
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+NC='\033[0m'
+
+echo -e "${BLUE}=== Pareto Frontier Health Check ===${NC}"
+
+# 1. Filesystem & Project Structure
+echo -n "[*] Checking project structure... "
+PROJECT_ROOT=$(pwd)
+REQUIRED_DIRS=("bin" "core" "docs" "evals" "models" "tests")
+MISSING_DIRS=()
+
+for dir in "${REQUIRED_DIRS[@]}"; do
+    if [ ! -d "$dir" ]; then
+        MISSING_DIRS+=("$dir")
+    fi
+done
+
+if [ ${#MISSING_DIRS[@]} -eq 0 ]; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}MISSING: ${MISSING_DIRS[*]}${NC}"
+    exit 1
+fi
+
+# 2. Python Environment
+echo -n "[*] Checking virtual environment... "
+if [ ! -d ".venv" ]; then
+    echo -e "${RED}MISSING (.venv directory)${NC}"
+else
+    echo -e "${GREEN}OK${NC}"
+fi
+
+if [ -d ".venv" ]; then
+    VENV_PYTHON=".venv/bin/python3"
+    if ! "$VENV_PYTHON" --version >/dev/null 2>&1; then
+        echo -e "${RED}Broken or incorrect Python in .venv${NC}"
+        exit 1
+    fi
+    echo -n "    - Dependencies: "
+    # Check key dependencies using import names
+    if [ -f "requirements.txt" ]; then
+        # Format: name|import_name
+        declare -A deps=( ["pyyaml"]="yaml" ["python-dotenv"]="dotenv" ["requests"]="requests" ["pydantic"]="pydantic" ["psutil"]="psutil" )
+        MISSING_COUNT=0
+        for pkg in "${!deps[@]}"; do
+            if ! "$VENV_PYTHON" -c "import ${deps[$pkg]}" >/dev/null 2>&1; then
+                echo -ne "\n       ${RED}✘ $pkg (module: ${deps[$pkg]})${NC}"
+                MISSING_COUNT=$((MISSING_COUNT+1))
+            fi
+        done
+        if [ $MISSING_COUNT -eq 0 ]; then echo -e "${GREEN}OK (All core deps found)${NC}"; else echo -e "\n       ${RED}$MISSING_COUNT package(s) missing${NC}"; fi
+    else
+        echo -e "${RED}No requirements.txt found${NC}"
+    fi
+else
+    echo -e "${RED}MISSING${NC}"
+    exit 1
+fi
+
+# 3. Shell Dependencies
+echo -n "[*] Checking shell tools... "
+for cmd in curl jq sed awk; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}Missing $cmd${NC}"
+        exit 1
+    fi
+done
+echo -e "${GREEN}OK${NC}"
+
+# 4. Ollama Connectivity (Cheap Tier)
+echo -n "[*] Checking Ollama connectivity... "
+OLLAMA_ADDR="${OLLAMA_ENDPOINT:-http://localhost:11434/api/chat}"
+if curl --max-time 2 "$OLLAMA_ADDR" >/dev/null 2>&1; then
+    echo -e "${GREEN}REACHABLE ($OLLAMA_ADDR)${NC}"
+else
+    echo -e "${RED}UNREACHABLE (Check if Ollama is running)${NC}"
+fi
+
+# 5. Writeability
+echo -n "[*] Checking audit log writeability... "
+if [ ! -w "evals" ]; then
+    echo -e "${RED}Directory 'evals/' is not writable${NC}"
+    exit 1
+else
+    echo -e "${GREEN}OK${NC}"
+fi
+
+echo -e "\n${BLUE}=== Health Check Complete ===${NC}"
