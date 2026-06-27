@@ -7,7 +7,7 @@ Welcome to **Pareto Frontier**, the high-efficiency LLM orchestration stack desi
 ### 1. Installation
 Clone this repository and run the setup script to configure your environment (creates a virtual environment and installs dependencies).
 ```bash
-git clone <repo_url> Pareto_Frontier
+git clone https://github.com/ZonG0D/Pareto_Frontier Pareto_Frontier
 cd Pareto_Frontier
 ./setup.sh
 ```
