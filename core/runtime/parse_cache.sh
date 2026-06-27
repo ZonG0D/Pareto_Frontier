@@ -38,7 +38,8 @@ if [ -f "$CACHE_FILE" ]; then
         echo "$RAW_CONTENT"
     fi
 else
-    RESULT=$(bash "$ORIGINAL_TOOL" "$INPUT_TEXT")
+    RESULT=$(printf "%s
+" "$INPUT_TEXT" | bash "$ORIGINAL_TOOL" -s)
     if [ -n "$RESULT" ]; then
         echo "$RESULT" > "$CACHE_FILE"
         echo "$RESULT"

@@ -66,6 +66,18 @@ class Orchestrator:
         total_duration = (time.perf_counter() - start_time) * 1000
         metrics["total_latency_ms"] = round(total_duration, 3)
 
+        # TELEMETRY INJECTION START
+        import json
+        from datetime import datetime
+        from pathlib import Path
+        audit_log = Path(__file__).resolve().parent.parent / "evals" / "performance_audit.jsonl"
+        with open(audit_log, "a") as f:
+            f.write(json.dumps({
+                "timestamp": datetime.now().isoformat(), 
+                "prompt": user_input[:50], 
+                "metrics": metrics
+            }) + "\n")
+# TELEMETRY INJECTION END
         return {
             "original": user_input,
             "parsed": parsed_json,
